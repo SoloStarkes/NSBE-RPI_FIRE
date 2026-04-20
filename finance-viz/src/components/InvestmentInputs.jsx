@@ -35,7 +35,7 @@ function FieldLabel({ children }) {
 
 function Card({ children }) {
   return (
-    <div className="rounded-2xl bg-white p-6 shadow-sm border" style={{ borderColor: '#efefef' }}>
+    <div className="rounded-2xl bg-white p-4 sm:p-6 shadow-sm border" style={{ borderColor: '#efefef' }}>
       {children}
     </div>
   )
@@ -108,11 +108,13 @@ export default function InvestmentInputs({ initialSalary = 0, onChange }) {
         <input
           type="range" min={1} max={30} step={1} value={percent}
           onChange={e => setPercent(Number(e.target.value))}
-          className="w-full h-2.5 rounded-full appearance-none cursor-pointer"
-          style={{ accentColor: RPI_RED }}
+          className="w-full h-2.5 appearance-none cursor-pointer"
+          style={{ '--fill': `${Math.round(((percent - 1) / 29) * 100)}%` }}
         />
-        <div className="flex justify-between text-sm mt-1.5" style={{ color: '#bbb' }}>
-          <span>1%</span><span>30%</span>
+        <div className="flex justify-between items-center text-sm mt-1.5" style={{ color: '#bbb' }}>
+          <span>1%</span>
+          <span className="text-xs" style={{ color: '#ccc' }}>drag to adjust</span>
+          <span>30%</span>
         </div>
 
         <div className="mt-4 rounded-xl px-5 py-4 flex items-center justify-between"

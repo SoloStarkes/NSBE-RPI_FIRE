@@ -20,6 +20,7 @@ function EndLabel({ viewBox, text, color }) {
   if (!viewBox) return null
   const { cx, cy } = viewBox
   const w = text.length * 8 + 16
+  if (cx < w / 2 + 8) return null
   return (
     <g>
       <circle cx={cx} cy={cy} r={6} fill={color} stroke="white" strokeWidth={2} />
@@ -99,7 +100,7 @@ function ImpactCallout({ percent, monthlyInvestment, startAge, totalContributed,
   const multiplier = totalContributed > 0 ? Math.round(finalValue / totalContributed) : 0
 
   return (
-    <div className="mt-6 rounded-2xl p-7 lg:p-8" style={{ background: RPI_DARK }}>
+    <div className="mt-6 rounded-2xl p-5 sm:p-7 lg:p-8" style={{ background: RPI_DARK }}>
 
       <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 items-start">
 
@@ -179,7 +180,7 @@ export default function CompoundGrowthChart({ monthlyInvestment, startAge, retur
     <div className="rounded-2xl shadow-sm border" style={{ background: '#fff', borderColor: '#efefef' }}>
 
       {/* ── Chart header ──────────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-6 pb-0">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 sm:p-6 pb-0">
         <div>
           <h2 className="text-xl font-extrabold" style={{ color: RPI_DARK }}>
             Portfolio Growth to Age {endAge}
@@ -204,9 +205,10 @@ export default function CompoundGrowthChart({ monthlyInvestment, startAge, retur
       </div>
 
       {/* ── Chart ─────────────────────────────────────────────────────── */}
-      <div className="px-2 pt-2">
-        <ResponsiveContainer width="100%" height={420}>
-          <AreaChart data={data} margin={{ top: 52, right: 20, bottom: 4, left: 16 }}>
+      <div className="px-1 sm:px-2 pt-1 sm:pt-2">
+        <div style={{ width: '100%', height: 'clamp(260px, 55vw, 420px)' }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={data} margin={{ top: 52, right: 40, bottom: 4, left: 16 }}>
             <defs>
               {RATES.map(({ gradientId, color }) => (
                 <linearGradient key={gradientId} id={gradientId} x1="0" y1="0" x2="0" y2="1">
@@ -219,6 +221,7 @@ export default function CompoundGrowthChart({ monthlyInvestment, startAge, retur
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
 
             <XAxis dataKey="age" tick={{ fontSize: 13, fill: '#999' }} tickLine={false} axisLine={false}
+              interval={5}
               label={{ value: 'Age', position: 'insideBottomRight', offset: -4, fontSize: 13, fill: '#bbb' }} />
             <YAxis tickFormatter={fmtY} tick={{ fontSize: 13, fill: '#999' }}
               tickLine={false} axisLine={false} width={64} />
@@ -238,10 +241,11 @@ export default function CompoundGrowthChart({ monthlyInvestment, startAge, retur
             ))}
           </AreaChart>
         </ResponsiveContainer>
+        </div>
       </div>
 
       {/* ── Summary stats ─────────────────────────────────────────────── */}
-      <div className="px-6 pb-6">
+      <div className="px-4 sm:px-6 pb-4 sm:pb-6">
         <div className="pt-5 mb-4" style={{ borderTop: '1px solid #f0f0f0' }}>
           <div className="flex items-center gap-2 mb-4">
             <div className="w-2.5 h-2.5 rounded-full" style={{ background: selectedRate.color }} />
@@ -249,7 +253,7 @@ export default function CompoundGrowthChart({ monthlyInvestment, startAge, retur
               {selectedRate.label} Scenario Summary
             </p>
           </div>
-          <div className="flex gap-3 flex-wrap">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <StatCard
               label="Total Contributed"
               value={formatCompact(totalContributed)}

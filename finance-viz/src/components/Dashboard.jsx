@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, Fragment } from 'react'
 import MajorSelector from './MajorSelector'
 import InvestmentInputs from './InvestmentInputs'
+import HourlyConverter from './HourlyConverter'
+import GradSalaryEstimator from './GradSalaryEstimator'
 import CompoundGrowthChart from './CompoundGrowthChart'
 
 const RPI_RED = '#E2231A'
@@ -34,48 +36,83 @@ function ResetIcon() {
 // ── Header step tracker ────────────────────────────────────────────────────
 function StepTracker({ currentStep }) {
   return (
-    <div className="flex items-center mt-10 flex-wrap gap-y-4">
-      {STEPS.map((s, i) => {
-        const done   = currentStep > s.num
-        const active = currentStep === s.num
-        const locked = currentStep < s.num
-        return (
-          <Fragment key={s.num}>
-            <div className="flex items-center gap-2.5 flex-shrink-0">
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center font-black transition-all duration-500"
-                style={{
-                  fontSize: '0.95rem',
-                  background: done ? RPI_RED : active ? '#ffffff' : 'transparent',
-                  color:      done ? '#fff'   : active ? RPI_DARK  : '#606060',
-                  border:     locked ? '2px solid #505050' : 'none',
-                  boxShadow:  active ? '0 0 0 4px rgba(255,255,255,0.14)' : 'none',
-                }}
-              >
-                {done ? <Check /> : s.num}
+    <div className="mt-6 sm:mt-10">
+
+      {/* Mobile: compact single row — circles + short labels only */}
+      <div className="flex items-center sm:hidden">
+        {STEPS.map((s, i) => {
+          const done   = currentStep > s.num
+          const active = currentStep === s.num
+          return (
+            <Fragment key={s.num}>
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <div
+                  className="w-7 h-7 rounded-full flex items-center justify-center font-black flex-shrink-0"
+                  style={{
+                    fontSize:   '0.7rem',
+                    background: done ? RPI_RED : active ? '#ffffff' : 'transparent',
+                    color:      done ? '#fff'   : active ? RPI_DARK  : '#606060',
+                    border:     active || done ? 'none' : '1.5px solid #505050',
+                    boxShadow:  active ? '0 0 0 3px rgba(255,255,255,0.14)' : 'none',
+                  }}
+                >
+                  {done ? <Check /> : s.num}
+                </div>
+                <span className="text-xs font-bold leading-none"
+                  style={{ color: active ? '#e5e7eb' : '#606060' }}>
+                  {s.shortLabel}
+                </span>
               </div>
-              <div className="hidden sm:block">
-                <p className="text-base font-bold leading-none"
-                  style={{ color: locked ? '#606060' : '#e5e7eb' }}>
-                  {s.label}
-                </p>
-                <p className="text-sm leading-none mt-1"
-                  style={{ color: locked ? '#505050' : '#6b7280' }}>
-                  {s.desc}
-                </p>
+              {i < 2 && (
+                <div className="h-px flex-1 mx-2 transition-all duration-700"
+                  style={{ background: currentStep > i + 1 ? RPI_RED : '#3a3a3a' }} />
+              )}
+            </Fragment>
+          )
+        })}
+      </div>
+
+      {/* Desktop: full tracker with labels and descriptions */}
+      <div className="hidden sm:flex items-center flex-wrap gap-y-4">
+        {STEPS.map((s, i) => {
+          const done   = currentStep > s.num
+          const active = currentStep === s.num
+          const locked = currentStep < s.num
+          return (
+            <Fragment key={s.num}>
+              <div className="flex items-center gap-2.5 flex-shrink-0">
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center font-black transition-all duration-500"
+                  style={{
+                    fontSize:   '0.95rem',
+                    background: done ? RPI_RED : active ? '#ffffff' : 'transparent',
+                    color:      done ? '#fff'   : active ? RPI_DARK  : '#606060',
+                    border:     locked ? '2px solid #505050' : 'none',
+                    boxShadow:  active ? '0 0 0 4px rgba(255,255,255,0.14)' : 'none',
+                  }}
+                >
+                  {done ? <Check /> : s.num}
+                </div>
+                <div>
+                  <p className="text-base font-bold leading-none"
+                    style={{ color: locked ? '#606060' : '#e5e7eb' }}>
+                    {s.label}
+                  </p>
+                  <p className="text-sm leading-none mt-1"
+                    style={{ color: locked ? '#505050' : '#6b7280' }}>
+                    {s.desc}
+                  </p>
+                </div>
               </div>
-              <p className="text-sm font-bold sm:hidden"
-                style={{ color: locked ? '#606060' : '#e5e7eb' }}>
-                {s.shortLabel}
-              </p>
-            </div>
-            {i < 2 && (
-              <div className="h-px flex-1 mx-4 transition-all duration-700"
-                style={{ maxWidth: 72, background: currentStep > i + 1 ? RPI_RED : '#3a3a3a' }} />
-            )}
-          </Fragment>
-        )
-      })}
+              {i < 2 && (
+                <div className="h-px flex-1 mx-4 transition-all duration-700"
+                  style={{ maxWidth: 72, background: currentStep > i + 1 ? RPI_RED : '#3a3a3a' }} />
+              )}
+            </Fragment>
+          )
+        })}
+      </div>
+
     </div>
   )
 }
@@ -130,14 +167,21 @@ export default function Dashboard() {
   const [selectedMajor,    setSelectedMajor]    = useState(null)
   const [investmentParams, setInvestmentParams] = useState(null)
   const [showChart,        setShowChart]        = useState(false)
+  const [salaryOverride,   setSalaryOverride]   = useState(null)
+  const [overrideSource,   setOverrideSource]   = useState(null) // 'grad' | 'hourly' | null
 
   const chartRef = useRef(null)
   const currentStep = !selectedMajor ? 1 : !showChart ? 2 : 3
+
+  // Clear the hourly override whenever the user picks a different major
+  useEffect(() => { setSalaryOverride(null); setOverrideSource(null) }, [selectedMajor?.major])
 
   const handleReset = () => {
     setSelectedMajor(null)
     setInvestmentParams(null)
     setShowChart(false)
+    setSalaryOverride(null)
+    setOverrideSource(null)
     setResetKey(k => k + 1)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -164,10 +208,10 @@ export default function Dashboard() {
 
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
       <header style={{ background: RPI_DARK }}>
-        <div className="max-w-6xl mx-auto px-6 pt-14 pb-12">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 sm:pt-14 pb-8 sm:pb-12">
 
           {/* Brand row — reset button lives here */}
-          <div className="flex items-center gap-3 mb-8">
+          <div className="flex items-center gap-3 mb-6 sm:mb-8 flex-wrap">
             <span className="text-sm font-black tracking-widest uppercase px-2.5 py-1 rounded"
               style={{ background: RPI_RED, color: '#fff' }}>
               RPI
@@ -218,10 +262,10 @@ export default function Dashboard() {
       </header>
 
       {/* ── BODY ────────────────────────────────────────────────────────── */}
-      <main className="max-w-6xl mx-auto px-4 pt-10 pb-16">
+      <main className="max-w-6xl mx-auto px-3 sm:px-4 pt-6 sm:pt-10 pb-12 sm:pb-16">
 
         {/* Steps 1 & 2 side by side */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 items-start">
 
           {/* ── Step 1 ────────────────────────────────────────────────── */}
           <div>
@@ -252,8 +296,21 @@ export default function Dashboard() {
                   </div>
                 </div>
 
+                {/* Grad school estimator — optional, collapsed by default */}
+                <GradSalaryEstimator
+                  baseSalary={selectedMajor.averageSalary}
+                  onUse={s => { setSalaryOverride(s); setOverrideSource('grad') }}
+                  hasOverride={overrideSource === 'grad'}
+                />
+
+                {/* Hourly wage converter — optional, collapsed by default */}
+                <HourlyConverter
+                  onUse={s => { setSalaryOverride(s); setOverrideSource('hourly') }}
+                  hasOverride={overrideSource === 'hourly'}
+                />
+
                 <InvestmentInputs
-                  initialSalary={selectedMajor.averageSalary}
+                  initialSalary={salaryOverride ?? selectedMajor.averageSalary}
                   onChange={setInvestmentParams}
                 />
               </div>
@@ -269,7 +326,7 @@ export default function Dashboard() {
 
         {/* ── Step 3 ──────────────────────────────────────────────────── */}
         {showChart && (
-          <div ref={chartRef} className="mt-14 scroll-mt-6" style={{ animation: FADE_UP }}>
+          <div ref={chartRef} className="mt-8 sm:mt-14 scroll-mt-6" style={{ animation: FADE_UP }}>
             <SectionLabel num={3} title="See the Growth"
               desc="Three market scenarios — your portfolio from starting age to age 65." active />
             <CompoundGrowthChart
@@ -285,7 +342,7 @@ export default function Dashboard() {
 
       {/* ── FOOTER ──────────────────────────────────────────────────────── */}
       <footer className="border-t" style={{ borderColor: '#e5e7eb' }}>
-        <div className="max-w-6xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <p className="text-sm" style={{ color: '#aaa' }}>
             RPI Class of 2025 Average Reported Salaries · Source: CCPD
           </p>

@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { salaries, salaryGroups } from '../data/salaries'
-import { formatCurrency } from '../utils/formatters'
+import { formatCurrency, formatCurrencyWhole } from '../utils/formatters'
 
 const RPI_RED = '#E2231A'
 const RPI_DARK = '#333333'
@@ -56,8 +56,8 @@ function SalaryPanel({ entry }) {
         <p className="text-sm font-semibold uppercase tracking-widest" style={{ color: '#888' }}>
           Average Starting Salary
         </p>
-        <p className="text-5xl font-extrabold mt-2 tabular-nums" style={{ color: '#fff' }}>
-          {formatCurrency(entry.averageSalary)}
+        <p className="font-extrabold mt-2 tabular-nums" style={{ color: '#fff', fontSize: 'clamp(1.4rem, 5.5vw, 2.1rem)', lineHeight: 1.1 }}>
+          {formatCurrencyWhole(entry.averageSalary)}
         </p>
       </div>
 
@@ -96,6 +96,13 @@ export default function MajorSelector({ onSelect }) {
   const [search,      setSearch]      = useState('')
   const [activeGroup, setActiveGroup] = useState('All')
   const [selected,    setSelected]    = useState(null)
+  const panelRef = useRef(null)
+
+  const handleSelect = (entry) => {
+    setSelected(entry)
+    onSelect?.(entry)
+    setTimeout(() => panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80)
+  }
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase()
@@ -166,18 +173,20 @@ export default function MajorSelector({ onSelect }) {
                 key={entry.major}
                 entry={entry}
                 selected={selected}
-                onClick={() => { setSelected(entry); onSelect?.(entry) }}
+                onClick={() => handleSelect(entry)}
               />
             ))
           )}
         </div>
 
-        {/* Salary detail panel */}
-        <div className="md:sticky md:top-6 self-start">
+        {/* Salary detail panel
+            Desktop: sticky right column, always visible (shows placeholder when nothing selected).
+            Mobile: appears below cards only when a major is selected. */}
+        <div ref={panelRef} className="md:sticky md:top-6 self-start">
           {selected ? (
             <SalaryPanel entry={selected} />
           ) : (
-            <div className="rounded-2xl p-7 border-2 border-dashed flex flex-col items-center justify-center text-center"
+            <div className="hidden md:flex rounded-2xl p-7 border-2 border-dashed flex-col items-center justify-center text-center"
               style={{ borderColor: '#ddd', minHeight: '13rem' }}>
               <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3"
                 style={{ background: 'rgba(226,35,26,0.08)' }}>
@@ -188,7 +197,7 @@ export default function MajorSelector({ onSelect }) {
               </div>
               <p className="text-base font-semibold" style={{ color: RPI_DARK }}>Select a major</p>
               <p className="text-sm mt-1.5" style={{ color: '#999' }}>
-                Click any card to see salary details.
+                Tap any card to see salary details.
               </p>
             </div>
           )}

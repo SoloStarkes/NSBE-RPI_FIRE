@@ -10,3 +10,53 @@
     transform: translateY(0);
   }
 }
+
+/* ── Range slider: two-tone filled track ──────────────────────────────── */
+input[type='range'] {
+  outline: none;
+}
+
+/* WebKit (Chrome, Safari, Edge) — gradient on the track pseudo-element
+   reads --fill, a CSS custom property set per-element in React. */
+input[type='range']::-webkit-slider-runnable-track {
+  height: 10px;
+  border-radius: 9999px;
+  background: linear-gradient(
+    to right,
+    #E2231A var(--fill, 0%),
+    #e5e7eb var(--fill, 0%)
+  );
+}
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #E2231A;
+  border: 2.5px solid #fff;
+  box-shadow: 0 1px 6px rgba(226, 35, 26, 0.35);
+  cursor: pointer;
+  margin-top: -6px; /* center 22px thumb on 10px track */
+}
+
+/* Firefox — use moz-range-progress for the filled left portion */
+input[type='range']::-moz-range-track {
+  height: 10px;
+  border-radius: 9999px;
+  background: #e5e7eb;
+}
+input[type='range']::-moz-range-progress {
+  height: 10px;
+  border-radius: 9999px;
+  background: #E2231A;
+}
+input[type='range']::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #E2231A;
+  border: 2.5px solid #fff;
+  box-shadow: 0 1px 6px rgba(226, 35, 26, 0.35);
+  cursor: pointer;
+}
