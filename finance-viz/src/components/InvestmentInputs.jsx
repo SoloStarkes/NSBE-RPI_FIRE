@@ -8,19 +8,19 @@ const RETURN_RATES = [
   {
     value: 6,
     label: 'Conservative',
-    sublabel: '6% / year',
+    sublabel: '7% / year',
     description: 'Below average — reflects cautious or bear market conditions.',
   },
   {
     value: 10,
     label: 'Average',
-    sublabel: '10% / year',
+    sublabel: '11% / year',
     description: 'Historical S&P 500 long-term average since 1957.',
   },
   {
     value: 12,
     label: 'Optimistic',
-    sublabel: '12% / year',
+    sublabel: '15% / year',
     description: 'Strong market periods or growth-heavy portfolios.',
   },
 ]

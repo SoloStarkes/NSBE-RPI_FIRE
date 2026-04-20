@@ -167,6 +167,7 @@ export default function CompoundGrowthChart({ monthlyInvestment, startAge, retur
 
   const endAge         = Math.max(startAge + 1, END_AGE)
   const finalData      = data[data.length - 1]
+  const yMax           = Math.ceil(finalData.optimistic * 1.08)
   const selectedRate   = RATES.find(r => r.rate === returnRate) ?? RATES[1]
   const finalValue     = finalData[selectedRate.key]
   const totalContributed = finalData.contributions
@@ -224,7 +225,8 @@ export default function CompoundGrowthChart({ monthlyInvestment, startAge, retur
               interval={5}
               label={{ value: 'Age', position: 'insideBottomRight', offset: -4, fontSize: 13, fill: '#bbb' }} />
             <YAxis tickFormatter={fmtY} tick={{ fontSize: 13, fill: '#999' }}
-              tickLine={false} axisLine={false} width={64} />
+              tickLine={false} axisLine={false} width={64}
+              domain={[0, yMax]} />
 
             <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#e5e7eb', strokeWidth: 1 }} />
 
